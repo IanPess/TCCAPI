@@ -28,3 +28,5 @@ CREATE TABLE Dados
  Data_Dados DATE,
  FOREIGN KEY (ID_Sensor) REFERENCES Sensores(ID_Sensor) 
 );
+
+UPDATE `eco`.`sensores` SET `ID_Sensor` = '0', `Nome_Sensor` = 'Api', `Tipo_Sensor` = 'Api_Sensor', `Ativo_Desativado` = '1' WHERE (`ID_Sensor` = '0');
