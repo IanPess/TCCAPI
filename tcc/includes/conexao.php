@@ -26,8 +26,18 @@ curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); // Retornar a resposta como stri
 $response = curl_exec($ch);                     // Executar a requisição
 curl_close($ch);                               // Fechar a conexão cURL
 
+// Verificar se a requisição foi bem-sucedida
+if (!$response) {
+    echo "Erro na requisição da API: " . curl_error($ch);
+    exit();
+}
+
 // Decodificar a resposta JSON da API
 $data = json_decode($response, true);
+
+// Exibir a estrutura completa da resposta para análise
+// Descomente a linha abaixo para debugar a estrutura de resposta da API
+// echo "<pre>" . print_r($data, true) . "</pre>";
 
 // Verificar se os dados de clima foram recebidos corretamente
 if (isset($data['current_weather'])) {
@@ -39,21 +49,21 @@ if (isset($data['current_weather'])) {
     $sensor_id = 0;
 
     // Inserir ou atualizar a temperatura (ID_Dados = 1)
-    $temperatura = isset($current['temperature']) ? $current['temperature'] : 0; // Se não houver temperatura, atribui 0
+    $temperatura = isset($current['temperature']) ? $current['temperature'] : 'Indisponível'; // Verifica se o valor está disponível
     $sql_temp = "INSERT INTO Dados (ID_Dados, ID_Sensor, Valor_Dados, Data_Dados)
                  VALUES (1, '$sensor_id', '$temperatura', '$data_dados')
                  ON DUPLICATE KEY UPDATE Valor_Dados = '$temperatura', Data_Dados = '$data_dados'";
     $con->query($sql_temp); // Executar a consulta
 
     // Inserir ou atualizar a velocidade do vento (ID_Dados = 2)
-    $vento = isset($current['windspeed']) ? $current['windspeed'] : 0; // Se não houver vento, atribui 0
+    $vento = isset($current['windspeed']) ? $current['windspeed'] : 'Indisponível'; // Verifica se o valor está disponível
     $sql_vento = "INSERT INTO Dados (ID_Dados, ID_Sensor, Valor_Dados, Data_Dados)
                   VALUES (2, '$sensor_id', '$vento', '$data_dados')
                   ON DUPLICATE KEY UPDATE Valor_Dados = '$vento', Data_Dados = '$data_dados'";
     $con->query($sql_vento); // Executar a consulta
 
     // Inserir ou atualizar a umidade (ID_Dados = 3)
-    $umidade = isset($current['relative_humidity']) ? $current['relative_humidity'] : 0; // Se não houver umidade, atribui 0
+    $umidade = isset($current['relative_humidity']) ? $current['relative_humidity'] : 'Indisponível'; // Verifica se o valor está disponível
     $sql_umidade = "INSERT INTO Dados (ID_Dados, ID_Sensor, Valor_Dados, Data_Dados)
                     VALUES (3, '$sensor_id', '$umidade', '$data_dados')
                     ON DUPLICATE KEY UPDATE Valor_Dados = '$umidade', Data_Dados = '$data_dados'";
@@ -63,12 +73,26 @@ if (isset($data['current_weather'])) {
     if (isset($data['hourly']['precipitation_hours']) && count($data['hourly']['precipitation_hours']) > 0) {
         $precipitacao = $data['hourly']['precipitation_hours'][0]; // Pega a primeira previsão de precipitação
     } else {
-        $precipitacao = 0; // Se não houver dados de precipitação, atribui 0
+        $precipitacao = 'Indisponível'; // Caso o dado não esteja disponível
     }
     $sql_precipitacao = "INSERT INTO Dados (ID_Dados, ID_Sensor, Valor_Dados, Data_Dados)
                          VALUES (4, '$sensor_id', '$precipitacao', '$data_dados')
                          ON DUPLICATE KEY UPDATE Valor_Dados = '$precipitacao', Data_Dados = '$data_dados'";
     $con->query($sql_precipitacao); // Executar a consulta
+
+    // Inserir ou atualizar a pressão atmosférica (ID_Dados = 5)
+    $pressao = isset($current['pressure']) ? $current['pressure'] : 'Indisponível'; // Verifica se o valor está disponível
+    $sql_pressao = "INSERT INTO Dados (ID_Dados, ID_Sensor, Valor_Dados, Data_Dados)
+                    VALUES (5, '$sensor_id', '$pressao', '$data_dados')
+                    ON DUPLICATE KEY UPDATE Valor_Dados = '$pressao', Data_Dados = '$data_dados'";
+    $con->query($sql_pressao); // Executar a consulta
+
+    // Inserir ou atualizar o índice UV (ID_Dados = 6)
+    $indice_uv = isset($current['uv_index']) ? $current['uv_index'] : 'Indisponível'; // Verifica se o valor está disponível
+    $sql_uv = "INSERT INTO Dados (ID_Dados, ID_Sensor, Valor_Dados, Data_Dados)
+               VALUES (6, '$sensor_id', '$indice_uv', '$data_dados')
+               ON DUPLICATE KEY UPDATE Valor_Dados = '$indice_uv', Data_Dados = '$data_dados'";
+    $con->query($sql_uv); // Executar a consulta
 
     echo "Dados inseridos com sucesso!"; // Mensagem de sucesso
 } else {
